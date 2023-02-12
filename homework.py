@@ -7,14 +7,14 @@ import sys
 import time
 
 from dotenv import load_dotenv
-import telegram 
+import telegram
 
 from exceptions import (TokenValidationError,
-                       BadRequestError,
-                       KeyAbsenceError,
-                       WrongHomeworkDataTypeError,
-                       WrongResponseDataTypeError,
-                       UnknowVerdictError
+                        BadRequestError,
+                        KeyAbsenceError,
+                        WrongHomeworkDataTypeError,
+                        WrongResponseDataTypeError,
+                        UnknowVerdictError
                         )
 
 load_dotenv()
@@ -52,7 +52,7 @@ logger.addHandler(handler)
 
 
 def check_tokens() -> None:
-    """Проверяет наличие необходимых токенов"""
+    """Проверяет наличие необходимых токенов."""
     env_vars = [
         PRACTICUM_TOKEN,
         TELEGRAM_TOKEN,
@@ -68,7 +68,7 @@ def check_tokens() -> None:
 
 
 def send_message(bot, message) -> None:
-    """Отправляет сообщение пользователю в чат"""
+    """Отправляет сообщение пользователю в чат."""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
     except Exception as error:
@@ -78,7 +78,7 @@ def send_message(bot, message) -> None:
 
 
 def get_api_answer(timestamp: int) -> dict:
-    """Производит запрос к API для получения статуса домашних работ"""
+    """Производит запрос к API для получения статуса домашних работ."""
     try:
         homework_statuses = requests.get(
             ENDPOINT,
@@ -89,15 +89,15 @@ def get_api_answer(timestamp: int) -> dict:
         logger.error(f'Сбой при запросе к эндпоинту: {error}')
     if homework_statuses.status_code != HTTPStatus.OK:
         logger.error('Сбой при запросе к эндпоинту')
-        raise BadRequestError   
+        raise BadRequestError
     return homework_statuses.json()
 
 
 def check_response(response: dict) -> dict:
-    """Проверяет ответ API на соответствие документации"""
+    """Проверяет ответ API на соответствие документации."""
     if type(response) != dict:
         logger.error('Структура данных не соответствует ожиданиям')
-        raise WrongResponseDataTypeError   
+        raise WrongResponseDataTypeError
     if 'homeworks' not in response:
         logger.error('Ключ homework отсутствует')
         raise KeyAbsenceError
@@ -108,16 +108,16 @@ def check_response(response: dict) -> dict:
 
 
 def parse_status(homework: dict) -> str:
-    """Подготавливает сообщение с данными из ответа API"""
+    """Подготавливает сообщение с данными из ответа API."""
     if 'homework_name' not in homework:
-        logger.error(f'Отсутствует ключ с названием работы')
+        logger.error('Отсутствует ключ с названием работы')
         raise KeyAbsenceError
     homework_name = homework.get('homework_name')
     if homework.get('status') not in HOMEWORK_VERDICTS:
         logger.warning('Неожиданный статус домашней работы')
         raise UnknowVerdictError
     else:
-        verdict = HOMEWORK_VERDICTS[homework.get('status')] 
+        verdict = HOMEWORK_VERDICTS[homework.get('status')]
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
